@@ -12,7 +12,8 @@ print(TerminalUtils().AnsiString(value: "';--have i been pwned?\n", color: .gree
 print("Email address: ")
 guard let email = readLine(strippingNewline: true) else { fatalError("insert a valid email.") }
 
-PwnedVerifier(email: email).verify() { data in
+let verifier = PwnedVerifier(email: email)
+verifier.verify() { data in
     print(data)
 }
 

@@ -9,6 +9,33 @@
 import Foundation
 
 public final class PwnedVerifier {
+    
+    public enum Result {
+        case safe
+        case error(error: Error?)
+        case pwned(value: [Pwned])
+    }
+    
+    public struct Pwned: Decodable {
+        
+        enum CodingKeys: String, CodingKey {
+            case name = "Name"
+            case breachDate = "BreachDate"
+            case domain = "Domain"
+        }
+        
+        var domain: String
+        var name: String
+        var beachDate: String
+        
+        public init(from decoder: Decoder) throws {
+            let values = try decoder.container(keyedBy: CodingKeys.self)
+            domain = try values.decode(String.self, forKey: .domain)
+            name = try values.decode(String.self, forKey: .name)
+            beachDate = try values.decode(String.self, forKey: .breachDate)
+        }
+    }
+    
     private let url: URL
     
     init(email: String) {
@@ -19,23 +46,54 @@ public final class PwnedVerifier {
         self.url = url
     }
     
-    func verify(completion: @escaping (Data) -> Void) {
-        let task = URLSession.shared.dataTask(with: self.url) { (data, response, error) in
+    func verify(completion: @escaping (Result) -> Void) {
+        let task = URLSession.shared.dataTask(with: self.url) { [weak self] data, response, error in
+            guard let `self` = self else { return }
             
-            if let data = data {
-                do {
-                    guard let json = try JSONSerialization.jsonObject(with: data, options: []) as? [[String : Any]] else { fatalError() }
-                    for value in json {
-                        print(TerminalUtils().AnsiString(value: value["Name"]! as! String, color: TerminalUtils.color.red, style: TerminalUtils.style.bold))
-                    }
-                }  catch let error as NSError {
-                    print(error.localizedDescription)
+            var result: Result
+            
+            defer {
+                DispatchQueue.main.async {
+                    completion(result)
                 }
-            } else if let error = error {
-                print(error.localizedDescription)
             }
+            
+            if let error = error {
+                result = .error(error: error)
+                return
+            }
+            
+            guard let response = response as? HTTPURLResponse else {
+                result = .error(error: nil)
+                return
+            }
+            
+            if response.statusCode == 404 {
+                result = .safe
+                return
+            }
+            
+            guard let data = data else {
+                result = .error(error: nil)
+                return
+            }
+            
+            result = self.present(with: data)
         }
+        
         task.resume()
+    }
+    
+    private func present(with data: Data) -> Result {
+        do {
+            let jsonDecoder = JSONDecoder()
+            let pwned = try jsonDecoder.decode([Pwned].self, from: data)
+            return .pwned(value: pwned)
+            
+        }  catch let error as NSError {
+            fatalError(error.localizedDescription)
+        }
+        fatalError()
     }
     
 }
