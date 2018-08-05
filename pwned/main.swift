@@ -8,14 +8,24 @@
 
 import Foundation
 
-print(TerminalUtils().AnsiString(value: "';--have i been pwned?\n", color: .green))
+print("';--have i been pwned?\n".AnsiString(color: .green, style: .none))
 print("Email address: ")
 guard let email = readLine(strippingNewline: true) else { fatalError("insert a valid email.") }
 
 let verifier = PwnedVerifier(email: email)
-verifier.verify() { data in
-    print(data)
+verifier.verify() { result in
+    switch result {
+    case .pwned(let value):
+        print("⚠️ Oh no — pwned! ⚠️ \n")
+        print("Pwned on \(value.count) breached sites")
+        for item in value {
+            print("[\(item.beachDate)] - \(item.name): \(item.domain)".AnsiString(color: .red, style: .bold))
+        }
+    case .safe:
+        print("Good news — no pwnage found!".AnsiString(color: .green, style: .bold))
+    case .error(let error):
+        print("Error: \(error)")
+    }
 }
 
 RunLoop.main.run()
-
