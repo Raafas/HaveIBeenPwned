@@ -20,11 +20,15 @@ verifier.verify() { result in
         print("Pwned on \(value.count) breached sites")
         for item in value {
             print("[\(item.beachDate)] - \(item.name): \(item.domain)".AnsiString(color: .red, style: .bold))
+            print("\(item.detail)".withoutHtmlTags.AnsiString(color: .white, style: .none))
         }
+        exit(0)
     case .safe:
         print("Good news — no pwnage found!".AnsiString(color: .green, style: .bold))
+        exit(0)
     case .error(let error):
         print("Error: \(error)")
+        exit(1)
     }
 }
 

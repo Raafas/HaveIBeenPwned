@@ -30,4 +30,8 @@ extension String {
     func AnsiString(color: Color = .white, style: Style = .none) -> String {
         return "\(style.rawValue)\(color.rawValue)\(self)\(Color.white.rawValue)\(Style.none.rawValue)"
     }
+    
+    var withoutHtmlTags: String {
+        return self.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression, range: nil)
+    }
 }

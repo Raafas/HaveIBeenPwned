@@ -22,17 +22,20 @@ public final class PwnedVerifier {
             case name = "Name"
             case breachDate = "BreachDate"
             case domain = "Domain"
+            case datail = "Description"
         }
         
         var domain: String
         var name: String
         var beachDate: String
+        var detail: String
         
         public init(from decoder: Decoder) throws {
             let values = try decoder.container(keyedBy: CodingKeys.self)
             domain = try values.decode(String.self, forKey: .domain)
             name = try values.decode(String.self, forKey: .name)
             beachDate = try values.decode(String.self, forKey: .breachDate)
+            detail = try values.decode(String.self, forKey: .datail)
         }
     }
     
