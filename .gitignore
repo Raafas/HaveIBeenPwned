@@ -1,0 +1,14 @@
+### macOS
+.DS_Store
+
+### Build generated
+build/
+DerivedData/
+.build/
+
+### Xcode
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcworkspace/contents.xcworkspacedata
+/*.gcno
